@@ -35,7 +35,7 @@ function Messages() {
     }
 
     axios
-    .post("https://nextgen-backend-l70i.onrender.com/send-message", newMessage, {
+    .post("https://nextgen-backend-cjum.onrender.com/send-message", newMessage, {
       headers: { "Content-Type": "application/json" },
     })
       .then(() => {
