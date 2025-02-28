@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import axios from "axios";
-import { Send } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
 import Swal from "sweetalert2";
 
 function Messages() {
@@ -9,22 +9,22 @@ function Messages() {
     subject: "",
     content: "",
   });
-
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Email Validation
-  const validateEmail = (email) => {
+  // Email Validation (Debounced)
+  const validateEmail = useCallback((email) => {
     if (!email.endsWith("@gmail.com")) {
       setError("Email must end with @gmail.com");
     } else {
       setError("");
     }
-    setNewMessage({ ...newMessage, sender: email });
-  };
+    setNewMessage((prev) => ({ ...prev, sender: email }));
+  }, []);
 
   // Send Message Function
-  const sendMessage = () => {
-    if (error || newMessage.sender === "") {
+  const sendMessage = async () => {
+    if (error || !newMessage.sender.trim()) {
       Swal.fire({
         icon: "error",
         title: "Invalid Email",
@@ -34,30 +34,33 @@ function Messages() {
       return;
     }
 
-    axios
-    .post("https://nextgen-backend-1.onrender.com/api/send-message", newMessage, {
-      headers: { "Content-Type": "application/json" },
-    })
-      .then(() => {
-        setNewMessage({ sender: "", subject: "", content: "" });
+    setLoading(true); // Start loading animation
 
-        // Success Alert
-        Swal.fire({
-          icon: "success",
-          title: "Message Sent!",
-          text: "Your email has been successfully sent.",
-          confirmButtonColor: "#30d685",
-        });
-      })
-      .catch(() => {
-        // Error Alert
-        Swal.fire({
-          icon: "error",
-          title: "Oops!",
-          text: "Failed to send message. Please try again.",
-          confirmButtonColor: "#d33",
-        });
+    try {
+      await axios.post(
+        "https://nextgen-backend-1.onrender.com/api/send-message",
+        newMessage,
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      setNewMessage({ sender: "", subject: "", content: "" });
+
+      Swal.fire({
+        icon: "success",
+        title: "Message Sent!",
+        text: "Your email has been successfully sent.",
+        confirmButtonColor: "#30d685",
       });
+    } catch {
+      Swal.fire({
+        icon: "error",
+        title: "Oops!",
+        text: "Failed to send message. Please try again.",
+        confirmButtonColor: "#d33",
+      });
+    } finally {
+      setLoading(false); // Stop loading animation
+    }
   };
 
   return (
@@ -86,7 +89,7 @@ function Messages() {
           placeholder="Subject"
           value={newMessage.subject}
           onChange={(e) =>
-            setNewMessage({ ...newMessage, subject: e.target.value })
+            setNewMessage((prev) => ({ ...prev, subject: e.target.value }))
           }
         />
 
@@ -97,16 +100,18 @@ function Messages() {
           placeholder="Write your message..."
           value={newMessage.content}
           onChange={(e) =>
-            setNewMessage({ ...newMessage, content: e.target.value })
+            setNewMessage((prev) => ({ ...prev, content: e.target.value }))
           }
         ></textarea>
 
-        {/* Send Button */}
+        {/* Send Button with Animation */}
         <button
-          className="w-full flex justify-center items-center gap-2 text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-lg px-6 py-3 transition-all duration-300"
+          className="w-full flex justify-center items-center gap-2 text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-lg px-6 py-3 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={sendMessage}
+          disabled={loading}
         >
-          <Send size={20} /> Send
+          {loading ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
+          {loading ? "Sending..." : "Send"}
         </button>
       </div>
     </div>
@@ -114,3 +119,4 @@ function Messages() {
 }
 
 export default Messages;
+
