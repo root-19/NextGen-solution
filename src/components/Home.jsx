@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-
+import { Link } from "react-router-dom";
 function Home() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6 text-center">
@@ -24,14 +24,16 @@ function Home() {
       </motion.p>
 
       {/* Call-to-Action Button with Blinking Animation */}
-      <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ opacity: [0, 1,] }}
-        transition={{  duration: 1.5 }}
-        className="mt-6 px-6 py-3 bg-green-600 text-white text-lg rounded-lg shadow-md hover:bg-green-700 transition"
-      >
-        Get Started
-      </motion.button>
+  <Link to="/messages">
+  <motion.button
+    initial={{ opacity: 0 }}
+    animate={{ opacity: [0, 1] }}
+    transition={{ duration: 1.5 }}
+    className="mt-6 px-6 py-3 bg-green-600 text-white text-lg rounded-lg shadow-md hover:bg-green-700 transition"
+  >
+    Get Started
+  </motion.button>
+</Link>
 
       {/* Additional Supporting Statement */}
       <motion.p
